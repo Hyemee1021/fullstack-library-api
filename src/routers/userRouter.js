@@ -1,23 +1,17 @@
 import express from "express";
-import { createUser } from "../models/user/UserModel.js";
+import { createUser, getUserByEmail } from "../models/user/UserModel.js";
 import { hashPassword, comparePassword } from "../utils/bcrypt.js";
 import {
   newUserValidation,
   loginValidation,
 } from "../middlewares/joiValidation.js";
+import { userAuth } from "../middlewares/authMiddleware.js";
+import { signJWTs, signAccessJWT } from "../utils/jwtHelper.js";
+import SessionSchema from "../models/session/SessionSchema.js";
+
 const router = express.Router();
 
 //"/api/v1/users"
-router.get("/", (req, res, next) => {
-  try {
-    res.json({
-      status: "success",
-      message: "get user",
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 router.post("/", (req, res, next) => {
   try {
@@ -74,18 +68,39 @@ router.post("/login", loginValidation, async (req, res, next) => {
 
     if (user?._id) {
       //check if the password from db and plain password matched
+
       const isMatched = comparePassword(password, user.password);
 
       if (isMatched) {
+        //jwt- emai; is string
+        //I want email in payload- access token session table
+        //email- will fond an user inb user table, and token will be stored
+        const jwts = signJWTs(user.email);
+
         return res.json({
           status: "success",
           message: "logged in successfully ",
+          jwts,
         });
       }
     }
+
     res.json({
       status: "error",
       message: "unsuccessful login ",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+//getting user info
+router.get("/", userAuth, (req, res, next) => {
+  try {
+    res.json({
+      status: "success",
+      message: "get user",
+      user: req.userInfo, // from auth
     });
   } catch (error) {
     next(error);

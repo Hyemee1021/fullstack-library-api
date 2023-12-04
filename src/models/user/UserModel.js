@@ -14,3 +14,8 @@ export const getUserByEmail = (email1) => {
 //update
 
 //delete
+
+//add refreshJWT to user Table,
+export const updateRefreshJWT = async (email, refreshJWT) => {
+  return await userSchema.findOneAndUpdate({ email }, { refreshJWT });
+};

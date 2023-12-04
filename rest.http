@@ -2,6 +2,11 @@
 
 #=====admin user
 
+### get student profile
+GET {{rootAPI}}/login
+
+
+
 ### create admin account
 POST {{rootAPI}}/admin-user
 Content-Type: application/json
