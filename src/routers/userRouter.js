@@ -1,11 +1,17 @@
 import express from "express";
-import { createUser, getUserByEmail } from "../models/user/UserModel.js";
+
+import {
+  createUser,
+  getUserByEmail,
+  updateRefreshJWT,
+} from "../models/user/UserModel.js";
+import { deleteSession } from "../models/session/SessionModel.js";
 import { hashPassword, comparePassword } from "../utils/bcrypt.js";
 import {
   newUserValidation,
   loginValidation,
 } from "../middlewares/joiValidation.js";
-import { userAuth } from "../middlewares/authMiddleware.js";
+import { userAuth, refreshAuth } from "../middlewares/authMiddleware.js";
 import { signJWTs, signAccessJWT } from "../utils/jwtHelper.js";
 import SessionSchema from "../models/session/SessionSchema.js";
 
@@ -73,14 +79,17 @@ router.post("/login", loginValidation, async (req, res, next) => {
 
       if (isMatched) {
         //jwt- emai; is string
-        //I want email in payload- access token session table
-        //email- will fond an user inb user table, and token will be stored
-        const jwts = signJWTs(user.email);
+        //I want email in payload- it doesnt matter who it will create once for access token to session table
+        //email- will fond an user in user table, and refresh token will be stored
+        const jwts = signJWTs(user.email); //generating jwts
 
         return res.json({
           status: "success",
           message: "logged in successfully ",
           jwts,
+          //send them to front so I can put them in local storage
+
+          //everytime i log in i get new access token
         });
       }
     }
@@ -94,16 +103,46 @@ router.post("/login", loginValidation, async (req, res, next) => {
   }
 });
 
+//logout
+router.post("/logout", async (req, res, next) => {
+  try {
+    const { accessJWT, email } = req.body; //from action
+
+    //remmove
+    accessJWT && (await deleteSession({ token: accessJWT }));
+
+    // update refresJWT to "" in user table
+    // I need email to find user and I will update refresh token empty
+    //remmove
+    email && (await updateRefreshJWT(email, ""));
+
+    res.json({
+      status: "success",
+      message: "logged out successfully ",
+
+      //send them to front so I can put them in local storage
+
+      //everytime i log in i get new access token
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+//checking authorization then get user info
 //getting user info
 router.get("/", userAuth, (req, res, next) => {
   try {
     res.json({
       status: "success",
-      message: "get user",
+      message: "get user successful",
       user: req.userInfo, // from auth
     });
   } catch (error) {
     next(error);
   }
 });
+
+//from  refreshAuth  im gettingn access toekn
+router.get("/get-accessjwt", refreshAuth);
 export default router;

@@ -1,4 +1,5 @@
 @rootAPI = http://localhost:8000/api/v1/users
+@bookAPI = http://localhost:8000/api/v1/books
 
 #=====admin user
 
@@ -23,7 +24,35 @@ Content-Type: application/json
 
 ### get student profile
 GET {{rootAPI}}
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImJAYi5jb20iLCJpYXQiOjE3MDE2OTY1ODAsImV4cCI6MTcwMTY5NzQ4MH0.CVLsQN_ZGU9BLAtpqzGxYo4cAbHnHnCoEHNh_924Y3g
 
 
 ### create new student account
 POST {{rootAPI}}
+
+//==============request new accessJWT for user
+//authorization is refreshJWT
+### GET
+GET {{rootAPI}}/get-accessjwt
+Authorization: 
+
+
+//==========book api
+###POST
+POST {{bookAPI}}
+Content-Type: application/json
+Authorization: 
+"I need accessToken"
+{
+
+
+  "thumbnail": "",
+  "name": "",
+    "author": "",
+    "publishYear": "",
+  "isbn": "",
+    "description":"",
+}
+
+###GET
+GET {{bookAPI}}

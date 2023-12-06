@@ -4,7 +4,7 @@ import { updateRefreshJWT } from "../models/user/UserModel.js";
 //access jwt :session table
 //obj ??
 export const signAccessJWT = (obj) => {
-  //must 1.obj
+  //must 1.obj-email
 
   //2. SECRET KEY
   //3. expiredin argument in sign()
@@ -12,7 +12,7 @@ export const signAccessJWT = (obj) => {
     expiresIn: "15m",
   });
 
-  creatSession({ token });
+  creatSession({ token }); //to data
 
   return token;
 };
@@ -21,11 +21,12 @@ export const signAccessJWT = (obj) => {
 //refreshkey is for creating access JWT
 //getting email by string and change to obj
 
-//valify
+//verify-decode
 export const accessJWTDecode = (accessJWT) => {
   return jwt.verify(accessJWT, process.env.JWT_ACCESS_SECRET);
 };
 
+//generate refresh JWT
 export const signRefreshJWT = (email) => {
   try {
     const token = jwt.sign({ email }, process.env.JWT_REFRESH_SECRET, {
@@ -33,11 +34,19 @@ export const signRefreshJWT = (email) => {
     });
 
     //store in userDatabase so user can generate new access token again
+    //email is unique so i can find user by email
+    //here token is refresh token
     updateRefreshJWT(email, token);
+
     return token;
   } catch (error) {
     console.log(error);
   }
+};
+
+//verify-decode
+export const refreshJWTDecode = (refreshJWT) => {
+  return jwt.verify(refreshJWT, process.env.JWT_REFRESH_SECRET);
 };
 
 //creating both funstion
