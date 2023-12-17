@@ -6,6 +6,10 @@ const bookSchema = new mongoose.Schema(
       type: String,
       default: "inactive",
     },
+    isNew: {
+      type: Boolean,
+      default: "true",
+    },
 
     thumbnail: {
       type: String,
@@ -34,8 +38,18 @@ const bookSchema = new mongoose.Schema(
     },
 
     description: {
-      type: Number,
+      type: String,
       required: true,
+    },
+
+    isAvailable: {
+      type: Boolean,
+      default: true,
+    },
+    dueDate: {
+      type: Date,
+
+      default: null,
     },
   },
 

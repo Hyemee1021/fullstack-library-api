@@ -2,10 +2,10 @@ import Joi from "joi";
 
 const SHORTSTR = Joi.string();
 const SHORTSTRREQUIRED = Joi.string().max(200).required();
-const LONGSTR = Joi.string().max(5000);
-const LONGSTRRERQUIRED = Joi.string().max(5000).required();
-const SMNUMBERREQUIRED = Joi.number().required();
-const SMNUMBER = Joi.number();
+const LONGSTR = Joi.string().max(50000);
+const LONGSTRRERQUIRED = Joi.string().max(50000).required();
+const NUMBERREQUIRED = Joi.number().required();
+const NUMBER = Joi.number();
 
 //======book validation
 const validationProcessor = ({ schemaObj, req, res, next }) => {
@@ -29,6 +29,7 @@ const validationProcessor = ({ schemaObj, req, res, next }) => {
     console.log(error);
   }
 };
+
 // middleware - have power recieve and get msg to client //receivews req, res,next
 export const newUserValidation = (req, res, next) => {
   try {
@@ -38,7 +39,7 @@ export const newUserValidation = (req, res, next) => {
       fName: Joi.string().required(),
       lName: Joi.string().required(),
       email: Joi.string().email({ minDomainSegments: 2 }).required(),
-      phone: Joi.string().allow(""),
+      phone: Joi.string().allow("", null),
       password: Joi.string().required(),
     });
 
@@ -87,16 +88,50 @@ export const loginValidation = (req, res, next) => {
 //===================books
 
 export const newBookValidation = (req, res, next) => {
-  schemaObj = {
-    thumbnail: LONGSTRRERQUIRED,
+  const schemaObj = {
+    thumbnail: LONGSTR,
     name: SHORTSTRREQUIRED,
     author: SHORTSTRREQUIRED,
-    publishYear: SMNUMBERREQUIRED,
-    isbn: SHORTSTR,
-    description: LONGSTRRERQUIRED,
+    publishYear: NUMBERREQUIRED,
+    isbn: SHORTSTRREQUIRED,
+    description: LONGSTR,
   };
 
-  validationProcessor(schemaObj, req, res, next);
+  validationProcessor({ schemaObj, req, res, next });
+
+  //I am gettign value or error or both from Joi
+  //joi will validate req.body
+};
+export const updateBookValidation = (req, res, next) => {
+  const schemaObj = {
+    status: SHORTSTRREQUIRED,
+    _id: SHORTSTRREQUIRED,
+    thumbnail: LONGSTR,
+    name: SHORTSTRREQUIRED,
+    author: SHORTSTRREQUIRED,
+    publishYear: NUMBERREQUIRED,
+
+    description: LONGSTR,
+  };
+
+  validationProcessor({ schemaObj, req, res, next });
+
+  //I am gettign value or error or both from Joi
+  //joi will validate req.body
+};
+
+//=======================burrow
+
+export const newBurrowValidation = (req, res, next) => {
+  const schemaObj = {
+    bookId: SHORTSTRREQUIRED,
+    bookName: SHORTSTRREQUIRED,
+    thumbnail: LONGSTR,
+    userId: SHORTSTRREQUIRED,
+    userName: SHORTSTRREQUIRED,
+  };
+
+  validationProcessor({ schemaObj, req, res, next });
 
   //I am gettign value or error or both from Joi
   //joi will validate req.body

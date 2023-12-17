@@ -30,37 +30,6 @@ router.post("/", (req, res, next) => {
   }
 });
 
-//create admin
-router.post("/admin-user", newUserValidation, async (req, res, next) => {
-  try {
-    //this point req.body is safe through joi
-    req.body.password = hashPassword(req.body.password);
-    console.log(req.body);
-
-    // im making new propoty of object
-    req.body.role = "admin";
-
-    const user = await createUser(req.body);
-
-    user?._id
-      ? res.json({
-          status: "success",
-          message: "create a admin user successfully",
-        })
-      : res.json({
-          status: "error",
-          message:
-            "Unable to create an account now, Pelase contact admin for support",
-        });
-  } catch (error) {
-    if (error.message.includes("E11000 duplicate")) {
-      error.message = "There is already user exist";
-      error.errorCode = 200;
-    }
-    next(error);
-  }
-});
-
 //login admin
 
 router.post("/login", loginValidation, async (req, res, next) => {
@@ -125,6 +94,37 @@ router.post("/logout", async (req, res, next) => {
       //everytime i log in i get new access token
     });
   } catch (error) {
+    next(error);
+  }
+});
+//below is private
+//create admin
+router.post("/admin-user", newUserValidation, async (req, res, next) => {
+  try {
+    //this point req.body is safe through joi
+    req.body.password = hashPassword(req.body.password);
+    console.log(req.body);
+
+    // im making new propoty of object
+    req.body.role = "admin";
+
+    const user = await createUser(req.body);
+
+    user?._id
+      ? res.json({
+          status: "success",
+          message: "create a admin user successfully",
+        })
+      : res.json({
+          status: "error",
+          message:
+            "Unable to create an account now, Pelase contact admin for support",
+        });
+  } catch (error) {
+    if (error.message.includes("E11000 duplicate")) {
+      error.message = "There is already user exist";
+      error.errorCode = 200;
+    }
     next(error);
   }
 });

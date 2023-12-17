@@ -56,3 +56,6 @@ Authorization:
 
 ###GET
 GET {{bookAPI}}
+
+###GET one book
+GET {{bookAPI}}/ _id

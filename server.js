@@ -11,7 +11,7 @@ import morgan from "morgan";
 //db connect
 
 import { connectDB } from "./src/config/dbConfig.js";
-
+import { userAuth } from "./src/middlewares/authMiddleware.js";
 connectDB();
 
 //middlewares
@@ -25,6 +25,9 @@ app.use("/api/v1/users", userRouter);
 
 import bookRouter from "./src/routers/bookRouter.js";
 app.use("/api/v1/books", bookRouter);
+
+import burrowRouter from "./src/routers/burrowRouter.js";
+app.use("/api/v1/burrows", userAuth, burrowRouter);
 
 //root
 app.get("/", (req, res) => {

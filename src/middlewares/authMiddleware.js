@@ -1,42 +1,83 @@
 import { getSession } from "../models/session/SessionModel.js";
 import { getOneAdmin, getUserByEmail } from "../models/user/UserModel.js";
-import { accessJWTDecode, signAccessJWT } from "../utils/jwtHelper.js";
+import {
+  accessJWTDecode,
+  refreshJWTDecode,
+  signAccessJWT,
+} from "../utils/jwtHelper.js";
+
+export const getUserFromAccessJWT = async (accessJWT) => {
+  //2. verify the token
+  //validate accessJWT-user info
+  const decoded = accessJWTDecode(accessJWT);
+  console.log(decoded); //there is email amd other user info
+
+  if (decoded?.email) {
+    //check the token in talbe-session model
+    //in database- it will find key name "token": authorizaiotn value
+    const tokenExist = await getSession({ token: accessJWT });
+    //I found the ringht one  person with the token
+    if (tokenExist?._id) {
+      //lets look if there is email for user
+      const user = await getUserByEmail(decoded.email);
+      //user has all the infor about user so
+      //I sen everything but password
+      if (user?._id) {
+        //I found the user with email
+        //set userinfo and send it to next middleware
+        user.password = undefined;
+        //set req.userinfo-infor coming from I need to check
+        //send to userRouter
+
+        return user;
+      }
+    }
+  }
+  return false;
+};
 
 //middleware always receives req, res, next
 export const userAuth = async (req, res, next) => {
+  try {
+    const { authorization } = req.headers;
+
+    const user = await getUserFromAccessJWT(authorization);
+
+    if (user?._id) {
+      user.password = undefined;
+      req.userInfo = user;
+      return next();
+    }
+
+    throw new error(" Invalid token, unauthorized");
+  } catch (error) {
+    error.errorCode = 401; //try to send wrong token
+    if (error.message.includes("jwt expired")) {
+      error.errorCode = 403;
+    }
+    next(error);
+  }
+};
+
+//admin auth
+export const adminAuth = async (req, res, next) => {
   try {
     //1. get token - authorization
     console.log(req.headers);
     //getting from front session storage
     const { authorization } = req.headers;
 
-    //2. verify the token
-    //validate accessJWT-user info
-    const decoded = accessJWTDecode(authorization);
-    console.log(decoded); //there is email amd other user info
+    const user = await getUserFromAccessJWT(authorization);
+    if (user?.role === "admin") {
+      //I found the user with email
+      //set userinfo and send it to next middleware
+      user.password = undefined;
+      //set req.userinfo-infor coming from I need to check
+      req.userInfo = user; //send to userRouter
 
-    if (decoded?.email) {
-      //check the token in talbe-session model
-      //in database- it will find key name "token": authorizaiotn value
-      const tokenExist = await getSession({ token: authorization });
-      //I found the ringht person with the token
-      if (tokenExist?._id) {
-        //lets look if there is email for user
-        const user = await getUserByEmail(decoded.email);
-        //user has all the infor about user so
-        //I sen everything but password
-        if (user?._id) {
-          //I found the user with email
-          //set userinfo and send it to next middleware
-          user.password = undefined;
-          //set req.userinfo-infor coming from I need to check
-          req.userInfo = user; //send to userRouter
-
-          return next();
-        }
-      }
+      return next();
     }
-    throw new error(" Invalid token, unauthorized");
+    throw new error(" Invalid token, or  unauthorized");
   } catch (error) {
     error.errorCode = 401; //try to send wrong token
     if (error.message.includes("jwt expired")) {
@@ -45,7 +86,6 @@ export const userAuth = async (req, res, next) => {
     console.log(error);
   }
 };
-
 //getting refreshAuth
 export const refreshAuth = async (req, res, next) => {
   try {
@@ -73,7 +113,7 @@ export const refreshAuth = async (req, res, next) => {
       if (user?._id) {
         //if there is a user in user tablr
         // create new accessJWT and return
-        const accessJWT = await signAccessJWT({ email: user.email });
+        const accessJWT = signAccessJWT({ email: user.email });
 
         return res.json({
           status: "success",
